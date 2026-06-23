@@ -1,13 +1,23 @@
 import csv
 import os
+from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.models.core import Player
 
-def update_styles_from_csv(file_path: str):
-    db = SessionLocal()
+def sync_player_roster(file_path: str):
+    """
+    Master Database Seeder: Reads the source CSV to perform an 'Upsert' (Update or Insert).
+    - New Players: Instantly created with Name, Role, Batting, and Bowling styles.
+    - Existing Players: Checked against the CSV; updates are committed ONLY if the data differs.
+    """
+    db: Session = SessionLocal()
     
-    updated_count = 0
-    not_found_count = 0
+    # 1. Load existing DB into an O(1) lookup dictionary: { "Virat Kohli": <Player Object> }
+    # This prevents us from spamming Neon DB with 500 individual SELECT queries inside the loop.
+    existing_players = {p.name: p for p in db.query(Player).all()}
+    
+    new_players_to_add = []
+    stats = {"inserted": 0, "updated": 0, "unchanged": 0}
     
     try:
         with open(file_path, mode='r', encoding='utf-8-sig') as file:
@@ -15,46 +25,73 @@ def update_styles_from_csv(file_path: str):
             
             for row in reader:
                 name = row.get('name', '').strip()
-                
-                # Make sure these match your exact CSV column headers!
-                batting = row.get('batting_style', '').strip() 
-                bowling = row.get('bowling_style', '').strip() 
-                
                 if not name:
                     continue
                     
-                # 1. Look up the existing player in the database
-                player = db.query(Player).filter(Player.name == name).first()
-                
-                if player:
-                    # 2. Update ONLY the batting and bowling columns
-                    player.batting_style = batting if batting else "Unknown"
-                    player.bowling_style = bowling if bowling else "Does not bowl"
-                    updated_count += 1
-                else:
-                    # If someone is in the CSV but got deleted from the DB, just skip them
-                    print(f"⚠️ Player '{name}' found in CSV but not in Database. Skipping.")
-                    not_found_count += 1
+                role = row.get('role', '').strip() or "Unknown"
+                batting = row.get('batting_style', '').strip() or "Unknown"
+                bowling = row.get('bowling_style', '').strip() or "Does not bowl"
 
-        # 3. Save all the targeted updates to Neon
-        db.commit()
-        print(f"✅ Successfully updated batting & bowling styles for {updated_count} players.")
-        
-        if not_found_count > 0:
-            print(f"⚠️ Skipped {not_found_count} rows that didn't match existing DB players.")
+                # SCENARIO A: Player exists -> Perform a "Dirty Check" for changed data
+                if name in existing_players:
+                    player = existing_players[name]
+                    needs_update = False
+                    
+                    if player.role != role and role != "Unknown":
+                        player.role = role
+                        needs_update = True
+                    if player.batting_style != batting and batting != "Unknown":
+                        player.batting_style = batting
+                        needs_update = True
+                    if player.bowling_style != bowling and bowling != "Does not bowl":
+                        player.bowling_style = bowling
+                        needs_update = True
+
+                    if needs_update:
+                        stats["updated"] += 1
+                    else:
+                        stats["unchanged"] += 1
+
+                # SCENARIO B: Brand new player -> Stage for bulk insert
+                else:
+                    new_player = Player(
+                        name=name,
+                        role=role,
+                        batting_style=batting,
+                        bowling_style=bowling
+                    )
+                    new_players_to_add.append(new_player)
+                    
+                    # Immediately cache them in our lookup dictionary so duplicate rows in the CSV don't break us
+                    existing_players[name] = new_player 
+                    stats["inserted"] += 1
+
+        # 2. Execute a single Atomic PostgreSQL Transaction
+        if new_players_to_add:
+            db.bulk_save_objects(new_players_to_add)
             
+        db.commit()
+        
+        # 3. Print a clean, scannable CLI readout for the developer
+        print("\n" + "="*45)
+        print(" 🏏 NEON DB ROSTER SYNCHRONIZATION COMPLETE")
+        print("="*45)
+        print(f" New Players Added : +{stats['inserted']}")
+        print(f" Profiles Updated  : ~{stats['updated']}")
+        print(f" Pristine/Skipped  :  {stats['unchanged']}")
+        print(f" Total Roster Size :  {len(existing_players)}")
+        print("="*45 + "\n")
+
     except FileNotFoundError:
-        print(f"❌ Could not find the file: {file_path}")
+        print(f"\n❌ CRITICAL: Master CSV not found at path -> {file_path}")
     except Exception as e:
-        print(f"❌ An error occurred: {str(e)}")
-        db.rollback() # Safely roll back if there is a database crash
+        print(f"\n❌ DATABASE TRANSACTION ABORTED: {str(e)}")
+        db.rollback() # Safe rollback prevents partial data corruption
     finally:
         db.close()
 
 if __name__ == "__main__":
-    # OS Path resolution so it finds listt.csv safely
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, "listt.csv")
+    target_csv = os.path.join(current_dir, "listt.csv")
     
-    print("Scanning database for matching players to update...")
-    update_styles_from_csv(csv_path)
+    sync_player_roster(target_csv)
