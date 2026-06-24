@@ -5,38 +5,38 @@ from typing import List
 # 1. SELECTION MODULE SCHEMAS
 # ==========================================
 
-class MatchupSelectionRequest(BaseModel):
-    venue: str = Field(..., description="The stadium and pitch conditions")
-    format: str = Field(..., description="T20, ODI, or Test match")
-    opposition_players: List[str] = Field(..., min_items=11, max_items=11, description="Exactly 11 player names")
-    squad_players: List[str] = Field(..., min_items=12, max_items=25, description="Your available pool of players to choose from")
-
-    @validator('squad_players')
-    def prevent_player_clash(cls, squad, values):
-        """
-        Backend safety check: Ensures no player exists in both the opposition and the squad.
-        """
-        if 'opposition_players' in values:
-            opposition = set(values['opposition_players'])
-            squad_set = set(squad)
-            overlap = opposition.intersection(squad_set)
-            if overlap:
-                raise ValueError(f"Player clash detected! These players cannot be on both teams: {', '.join(overlap)}")
-        return squad
-
-class SquadSlot(BaseModel):
-    batting_order: int
-    position_name: str
-    required_role: str
-    actual_db_role: str      # <--- Updated from 'role'
-    name: str
-    tactical_reason: str     # <--- Updated to match the LLM's key
-
-class PlayingXIResponse(BaseModel):
+class StrategyRequest(BaseModel):
+    user_xi: List[str] = Field(..., min_items=11, max_items=11, description="Your finalized Playing XI")
+    opposition_xi: List[str] = Field(..., min_items=11, max_items=11, description="Opposition's Playing XI")
     venue: str
     format: str
-    match_strategy_summary: str
-    playing_xi: List[SquadSlot]
+    innings: str            # e.g., "Batting 1st", "Chasing (Batting 2nd)"
+    pitch_type: str         # e.g., "Dry", "Hard", "Damp", "Green/Grass"
+    weather: str            # e.g., "Overcast", "Sunny"
+    wind_condition: str     # e.g., "High Wind", "Calm"
+    time_of_play: str       # e.g., "Day", "Day-Night", "Night"
+
+# --- OUTGOING JSON RESPONSE ---
+class PhaseItem(BaseModel):
+    phase_label: str
+    tactical_script: str
+
+class MatchupDetail(BaseModel):
+    user_player: str
+    opposition_player: str
+    advantage: str          # e.g., "Favorable" or "Danger"
+    tactical_rationale: str
+
+class PhaseStrategy(BaseModel):
+    powerplay: str
+    middle_overs: str
+    death_overs: str
+
+class MatchStrategyResponse(BaseModel):
+    overall_win_condition: str
+    batting_phases: List[PhaseItem]  # Replaced the static 'batting_strategy'
+    bowling_phases: List[PhaseItem]  # Replaced the static 'bowling_strategy'
+    key_matchups: List[MatchupDetail]
 
 
 # ==========================================
@@ -62,3 +62,17 @@ class AuctionRecommendation(BaseModel):
     
 class AuctionResponse(BaseModel):
     recommendations: List[AuctionRecommendation]
+
+# ==========================================
+# 4. NEWS
+# ==========================================
+
+class NewsArticle(BaseModel):
+    id: str
+    title: str
+    summary: str
+    category: str       # strictly "domestic" or "international"
+    source_wire: str    # e.g., "TNPL Scout Vector", "ICC Telemetry"
+    published_time: str
+    impact_level: str   # "Critical", "High", or "Medium"
+    tags: List[str]

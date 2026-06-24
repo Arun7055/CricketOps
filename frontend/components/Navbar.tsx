@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Users, HeartPulse, Gavel } from "lucide-react";
+import { Activity, Users, Gavel, Zap, Newspaper } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
 
   const navLinks = [
-    { name: "Match Selection", path: "/selection", icon: <Users className="w-4 h-4" /> },
+    { name: "Match Strategy", path: "/selection", icon: <Users className="w-4 h-4" /> },
     { name: "Auction Strategy", path: "/auction", icon: <Gavel className="w-4 h-4" /> },
+    { name: "Player Analysis", path: "/lab", icon: <Zap className="w-4 h-4" />},
+    { name: "News Feed", path: "/news", icon: <Newspaper className="w-4 h-4" /> },
   ];
 
   return (
