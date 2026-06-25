@@ -1,20 +1,14 @@
 from pydantic import BaseModel, Field, validator
 from typing import List
 
-# ==========================================
-# 1. SELECTION MODULE SCHEMAS
-# ==========================================
-
 class StrategyRequest(BaseModel):
     user_xi: List[str] = Field(..., min_items=11, max_items=11, description="Your finalized Playing XI")
     opposition_xi: List[str] = Field(..., min_items=11, max_items=11, description="Opposition's Playing XI")
+    
+    # ENVIRONMENTAL LOGISTICS (Trimmed down to only what matters to the SQL Engine)
     venue: str
     format: str
     innings: str            # e.g., "Batting 1st", "Chasing (Batting 2nd)"
-    pitch_type: str         # e.g., "Dry", "Hard", "Damp", "Green/Grass"
-    weather: str            # e.g., "Overcast", "Sunny"
-    wind_condition: str     # e.g., "High Wind", "Calm"
-    time_of_play: str       # e.g., "Day", "Day-Night", "Night"
 
 # --- OUTGOING JSON RESPONSE ---
 class PhaseItem(BaseModel):
@@ -24,20 +18,14 @@ class PhaseItem(BaseModel):
 class MatchupDetail(BaseModel):
     user_player: str
     opposition_player: str
-    advantage: str          # e.g., "Favorable" or "Danger"
+    advantage: str          # strictly "Favorable" or "Danger"
     tactical_rationale: str
-
-class PhaseStrategy(BaseModel):
-    powerplay: str
-    middle_overs: str
-    death_overs: str
 
 class MatchStrategyResponse(BaseModel):
     overall_win_condition: str
-    batting_phases: List[PhaseItem]  # Replaced the static 'batting_strategy'
-    bowling_phases: List[PhaseItem]  # Replaced the static 'bowling_strategy'
+    batting_phases: List[PhaseItem]
+    bowling_phases: List[PhaseItem]
     key_matchups: List[MatchupDetail]
-
 
 # ==========================================
 # 2. AUCTION MODULE SCHEMAS

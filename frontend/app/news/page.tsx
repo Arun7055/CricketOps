@@ -27,7 +27,7 @@ export default function IntelligenceWirePage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/v1/news/feed")
+    fetch("http://127.0.0.1:8000/api/v1/news/feed", {cache:"no-store",})
       .then(async (res) => {
         const payload = await res.json();
         if (!res.ok) throw new Error(payload.detail || "Failed to pull intelligence wire.");

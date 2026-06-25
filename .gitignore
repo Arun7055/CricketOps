@@ -27,6 +27,7 @@ backend/venv/
 venv/
 env/
 .venv/
+backend/data
 
 # Alembic & Database
 alembic.ini

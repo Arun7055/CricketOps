@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Users, ShieldAlert, Activity, ShieldCheck, 
-  CloudRain, Target, Swords
+  MapPin, Target, Swords
 } from "lucide-react";
 
 interface MatchupDetail {
@@ -20,8 +20,8 @@ interface PhaseItem {
 
 interface StrategyResponse {
   overall_win_condition: string;
-  batting_phases: PhaseItem[];  // Changed
-  bowling_phases: PhaseItem[];  // Changed
+  batting_phases: PhaseItem[];  
+  bowling_phases: PhaseItem[];  
   key_matchups: MatchupDetail[];
 }
 
@@ -31,18 +31,16 @@ export default function TacticalWarRoomPage() {
   // --- FORM STATE ---
   const [userXi, setUserXi] = useState<string[]>(Array(11).fill(""));
   const [oppositionXi, setOppositionXi] = useState<string[]>(Array(11).fill(""));
-  const [venue, setVenue] = useState("Wankhede Stadium, Mumbai"); // Back to custom text!
+  
+  // Strict Data-Driven Variables
+  const [venue, setVenue] = useState("Wankhede Stadium"); 
   const [format, setFormat] = useState("T20");
   const [innings, setInnings] = useState("Batting 1st");
-  const [pitchType, setPitchType] = useState("Hard");
-  const [weather, setWeather] = useState("Sunny");
-  const [timeOfPlay, setTimeOfPlay] = useState("Night");
 
   const [strategyResult, setStrategyResult] = useState<StrategyResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Safe Player Fetcher
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/v1/team/players")
       .then(async (res) => {
@@ -72,14 +70,11 @@ export default function TacticalWarRoomPage() {
     }
   };
 
-  // --- 2. THE REAL-TIME COLLISION DETECTOR ---
   const isPlayerAlreadyPicked = (targetName: string, currentSquad: "user" | "opp", slotIndex: number) => {
     if (!targetName) return false;
 
     if (currentSquad === "user") {
-      // Checked against User XI (excluding the slot we are currently sitting on)
       const inUser = userXi.some((name, idx) => idx !== slotIndex && name === targetName);
-      // Checked against the entire Opposition XI
       const inOpp = oppositionXi.includes(targetName);
       return inUser || inOpp;
     } else {
@@ -106,16 +101,13 @@ export default function TacticalWarRoomPage() {
       const response = await fetch("http://127.0.0.1:8000/api/v1/team/war-room-strategy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Exact match to updated Python Schema
         body: JSON.stringify({
           user_xi: filteredUser,
           opposition_xi: filteredOpp,
           venue: venue.trim() || "Neutral Venue",
           format,
           innings,
-          pitch_type: pitchType,
-          weather,
-          wind_condition: "Calm", 
-          time_of_play: timeOfPlay,
         }),
       });
 
@@ -138,7 +130,7 @@ export default function TacticalWarRoomPage() {
             <Swords className="text-blue-500" />
             <span>The Tactical War Room</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">Simulate pitch physics, weather shifts, and 1v1 matchup advantages</p>
+          <p className="text-xs text-slate-400 mt-1">Simulate historical 1v1 telemetry and venue-specific data.</p>
         </div>
       </div>
 
@@ -209,19 +201,18 @@ export default function TacticalWarRoomPage() {
 
             {/* MATCH CONDITIONS */}
             <h2 className="text-md font-bold text-slate-200 uppercase tracking-wider mt-6 mb-4 flex items-center gap-2">
-              <CloudRain className="w-4 h-4 text-emerald-400" /> <span>Logistics & Surface Vectors</span>
+              <MapPin className="w-4 h-4 text-emerald-400" /> <span>Match Logistics</span>
             </h2>
 
             <div className="grid grid-cols-2 gap-4 text-xs">
               
-              {/* VENUE (TEXT INPUT) */}
               <div className="col-span-2">
-                <label className="text-slate-400 block mb-1 font-medium">Match Ground / Dimensions</label>
+                <label className="text-slate-400 block mb-1 font-medium">Match Ground</label>
                 <input 
                   type="text" 
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  placeholder="e.g. Lord's, London (Slope / Seam)"
+                  placeholder="e.g. Wankhede Stadium"
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>
@@ -236,37 +227,10 @@ export default function TacticalWarRoomPage() {
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-medium">Pitch Surface</label>
-                <select value={pitchType} onChange={(e) => setPitchType(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white outline-none">
-                  <option value="Hard">Hard / True Bounce</option>
-                  <option value="Dry">Dry / Turning</option>
-                  <option value="Damp">Damp / Variable</option>
-                  <option value="Green/Grass">Green / Seaming</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1 font-medium">Weather Matrix</label>
-                <select value={weather} onChange={(e) => setWeather(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white outline-none">
-                  <option value="Sunny">Clear Skies / Sunny</option>
-                  <option value="Overcast">Heavy Overcast / Swing</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1 font-medium">Atmospheric Time</label>
-                <select value={timeOfPlay} onChange={(e) => setTimeOfPlay(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white outline-none">
-                  <option value="Day">Day Match</option>
-                  <option value="Day-Night">Day-Night (Twilight)</option>
-                  <option value="Night">Night Match (Under Lights)</option>
-                </select>
-              </div>
-
-              <div className="col-span-2">
                 <label className="text-slate-400 block mb-1 font-medium">Innings Strategy</label>
                 <select value={innings} onChange={(e) => setInnings(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white outline-none">
-                  <option value="Batting 1st">Setting Target (Batting 1st)</option>
-                  <option value="Chasing (Batting 2nd)">Chasing Target (Batting 2nd)</option>
+                  <option value="Batting 1st">Batting 1st</option>
+                  <option value="Chasing (Batting 2nd)">Chasing Target</option>
                 </select>
               </div>
 
@@ -280,12 +244,12 @@ export default function TacticalWarRoomPage() {
               {loading ? (
                 <>
                   <Activity className="w-4 h-4 animate-spin" />
-                  <span>Synthesizing Game Blueprint...</span>
+                  <span>Querying Historical Telemetry...</span>
                 </>
               ) : (
                 <>
                   <Target className="w-4 h-4" />
-                  <span>Execute Roster Stress-Test</span>
+                  <span>Calculate SQL Matchups</span>
                 </>
               )}
             </button>
@@ -299,7 +263,7 @@ export default function TacticalWarRoomPage() {
             <div className="h-full border border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center p-8 text-center text-slate-500 py-36">
               <Swords className="w-12 h-12 text-slate-700 mb-3" />
               <p className="text-sm font-medium">War Room Awaiting Configuration</p>
-              <p className="text-xs text-slate-600 mt-1 max-w-xs">Lock in your 22 players and surface variables to generate a custom match playbook.</p>
+              <p className="text-xs text-slate-600 mt-1 max-w-xs">Lock in your 22 players to run an SQL-backed historical collision simulation.</p>
             </div>
           )}
 
@@ -346,7 +310,7 @@ export default function TacticalWarRoomPage() {
 
               {/* 1v1 KRYPTONITE MATRIX */}
               <div className="bg-slate-900/40 border border-slate-800/80 p-6 rounded-2xl">
-                <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest mb-4">Critical 1v1 Vulnerability Matrix</h3>
+                <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest mb-4">Hard-Data Vulnerability Matrix</h3>
                 <div className="space-y-3">
                   {strategyResult.key_matchups.map((duel, idx) => {
                     const isFav = duel.advantage === "Favorable";
@@ -361,7 +325,7 @@ export default function TacticalWarRoomPage() {
                             <span className="text-slate-500">vs</span>
                             <span className="font-bold text-slate-300 text-sm">{duel.opposition_player}</span>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ml-auto ${isFav ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-                              {isFav ? "Target Mismatch" : "Critical Danger"}
+                              {isFav ? "Target Mismatch" : "Historical Danger"}
                             </span>
                           </div>
                           <p className="text-slate-400 leading-relaxed mt-1 text-[11px]">{duel.tactical_rationale}</p>
