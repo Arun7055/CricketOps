@@ -10,7 +10,7 @@ from alembic import context
 from app.core.config import settings
 from app.core.database import Base
 # Import models here to ensure they are registered on the Base.metadata
-from app.models.core import Player, PlayerMatchStat
+from app.models.core import Player
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

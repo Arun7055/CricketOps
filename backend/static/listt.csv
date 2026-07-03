@@ -1,0 +1,211 @@
+name,role,batting_style,bowling_style,Base Price
+Rohit Sharma,Batter,Right,right off-spin,200
+Arshdeep Singh,Bowler (Left-arm Fast),Left,left fast,200
+Ruturaj Gaikwad,Batter,Right,no-bowling,200
+Sunil Narine,All-Rounder (Spin),Left,right off-spin,200
+Josh Hazlewood,Bowler (Right-arm Fast),Left,right fast,200
+Rishabh Pant,Wicketkeeper-Batter,Left,no-bowling,200
+Ravindra Jadeja,All-Rounder,Left,left off-spin,200
+Travis Head,Batter,Left,right off-spin,200
+KL Rahul,Wicketkeeper-Batter,Right,no-bowling,200
+Shubman Gill,Batter,Right,no-bowling,200
+Yashasvi Jaiswal,Batter,Left,right leg-spin,200
+Virat Kohli,Batter,Right,right medium-fast,200
+Tilak Varma,Batter,Left,right off-spin,200
+Rinku Singh,Batter,Left,right off-spin,200
+Sai Sudarshan,Batter,Left,right leg-spin,200
+Suryakumar Yadav,Batter,Right,right off-spin,200
+Rajat Patidar,Batter,Right,right off-spin,200
+Dewald Brevis,Batter,Right,right leg-spin,200
+Jasprit Bumrah,Bowler (Right-arm Fast),Right,right fast,200
+Harshal Patel,Bowler (Right-arm Medium),Right,right medium-fast,200
+Mitchell Starc,Bowler (Left-arm Fast),Left,left fast,200
+Trent Boult,Bowler (Left-arm Fast),Right,left fast,200
+Pat Cummins,Bowler (Right-arm Fast),Right,right fast,200
+Kagiso Rabada,Bowler (Right-arm Fast),Left,right fast,200
+Harshit Rana,Bowler (Right-arm Fast),Right,right fast,200
+Abhishek Sharma,All-Rounder,Left,left off-spin,200
+Hardik Pandya,All-Rounder,Right,right medium-fast,200
+Shivam Dube,All-Rounder,Left,right medium-fast,200
+Nitish Kumar Reddy,All-Rounder,Right,right medium-fast,200
+Axar Patel,All-Rounder (Spin),Left,left off-spin,200
+Sam Curran,All-Rounder,Left,left medium-fast,200
+Romario Shepherd,All-Rounder,Right,right medium-fast,200
+Mitchell Marsh,All-Rounder,Right,right medium-fast,200
+Jos Buttler,Wicketkeeper-Batter,Right,no-bowling,200
+MS Dhoni,Wicketkeeper-Batter,Right,no-bowling,200
+Sanju Samson,Wicketkeeper-Batter,Right,no-bowling,200
+Nicholas Pooran,Wicketkeeper-Batter,Left,no-bowling,200
+Heinrich Klaasen,Wicketkeeper-Batter,Right,no-bowling,200
+Ishan Kishan,Wicketkeeper-Batter,Left,no-bowling,200
+Josh Inglis,WICKETKEEPER,Right,no-bowling,200
+Rashid Khan,Bowler (Leg-spin),Right,right leg-spin,200
+Varun Chakravarthy,Bowler (Mystery Spin),Right,right leg-spin,200
+Kuldeep Yadav,Bowler (Left-arm Wrist Spin),Left,left leg-spin,200
+Sai Kishore,Bowler (Left-arm Spin),Left,left off-spin,200
+Noor Ahmad,Bowler (Left-arm Spin),Right,left leg-spin,200
+Ravi Bishnoi,BOWLER,Right,right leg-spin,200
+Akeal Hosein,BOWLER,Left,left off-spin,200
+Maheesh Theekshana,BOWLER,Right,right off-spin,200
+David Miller,BATTER,Left,no-bowling,200
+Rovman Powell,Batter,Right,right medium-fast,200
+Shreyas Iyer,Batter,Right,right leg-spin,200
+Aiden Markram,Batter / All-Rounder,Right,right off-spin,200
+Abdul Samad,Batter,Right,right leg-spin,200
+Shimron Hetmyer,Batter,Left,no-bowling,200
+Tim David,Batter,Right,right off-spin,200
+Devdutt Padikkal,Batter,Left,right off-spin,200
+Khaleel Ahmed,Bowler (Left-arm Fast),Right,left fast,200
+Yash Dayal,Bowler (Left-arm Fast),Right,left medium-fast,200
+Jaydev Unadkat,Bowler (Left-arm Medium),Right,left medium-fast,200
+Mohammed Siraj,Bowler (Right-arm Fast),Right,right fast,200
+Prasidh Krishna,Bowler (Right-arm Fast),Right,right fast,200
+Bhuvneshwar Kumar,Bowler (Swing),Right,right medium-fast,200
+Sandeep Sharma,Bowler (Swing),Right,right medium-fast,200
+Deepak Chahar,Bowler (Right-arm Swing),Right,right medium-fast,200
+Venkatesh Iyer,ALL-ROUNDER,Left,right medium-fast,200
+Wanindu Hasaranga,ALL-ROUNDER,Right,right leg-spin,200
+Liam Livingstone,ALL-ROUNDER,Right,right leg-spin,200
+Rachin Ravindra,ALL-ROUNDER,Left,left off-spin,200
+Wiaan Mulder,ALL-ROUNDER,Right,right medium-fast,200
+Washington Sundar,All-Rounder (Spin),Left,right off-spin,200
+Mitchell Santner,All-Rounder (Spin),Left,left off-spin,200
+Ramandeep Singh,All-Rounder,Right,right medium-fast,100
+Prabhsimran Singh,Wicketkeeper-Batter,Right,no-bowling,100
+Dhruv Jurel,Wicketkeeper-Batter,Right,no-bowling,100
+Ryan Rickelton,Wicketkeeper-Batter,Left,no-bowling,150
+Phil Salt,Wicketkeeper-Batter,Right,no-bowling,200
+Jitesh Sharma,Wicketkeeper-Batter,Right,no-bowling,200
+Quinton De Kock,WICKETKEEPER,Left,no-bowling,200
+Jonny Bairstow,WICKETKEEPER,Right,no-bowling,200
+Rahmanullah Gurbaz,WICKETKEEPER,Right,no-bowling,200
+AM Ghazanfar,Bowler (Off-spin),Right,right off-spin,150
+Rahul Chahar,BOWLER,Right,right leg-spin,200
+Harpreet Brar,BOWLER,Left,left off-spin,100
+Mujeeb Rahman,BOWLER,Right,right off-spin,200
+Yuzvendra Chahal,Bowler (Leg-spin),Right,right leg-spin,200
+Shashank Singh,Batter,Right,right off-spin,100
+Nitish Rana,Batter / All-Rounder,Left,right off-spin,100
+Ajinkya Rahane,Batter,Right,no-bowling,100
+Cameron Green,BATTER,Right,right fast,200
+Manish Pandey,Batter,Right,no-bowling,200
+Ashutosh Sharma,Batter,Right,no-bowling,100
+Ayush Badoni,Batter,Right,right off-spin,100
+Mukesh Kumar,Bowler (Right-arm Medium),Right,right medium-fast,100
+Nuwan Thushara,Bowler (Right-arm Sling),Right,right medium-fast,100
+Mayank Yadav,Bowler (Right-arm Fast),Right,right fast,100
+Gerald Coetzee,BOWLER,Right,right fast,150
+Jacob Duffy,BOWLER,Right,right fast,150
+Matt Henry,BOWLER,Right,right fast,150
+Matheesha Pathirana,BOWLER,Right,right fast,200
+Md Shami,BOWLER,Right,right fast,200
+Lungisani Ngidi,BOWLER,Right,right fast,200
+Jacob Bethell,All-Rounder,Left,left off-spin,200
+Will Jacks,All-Rounder,Right,right off-spin,200
+Brydon Carse,All-Rounder,Right,right fast,200
+Marco Jansen,All-Rounder,Right,left fast,200
+Shahrukh Khan,All-Rounder,Right,right off-spin,200
+Glenn Phillips,All-Rounder,Right,right off-spin,200
+Rahul Tewatia,All-Rounder,Left,right leg-spin,200
+Marcus Stoinis,All-Rounder,Right,right medium-fast,200
+Abhishek Porel,Wicketkeeper-Batter,Left,no-bowling,100
+Tim Seifert,WICKETKEEPER,Right,no-bowling,150
+Kusal Mendis,WICKETKEEPER,Right,no-bowling,150
+K.S. Bharat,WICKETKEEPER,Right,no-bowling,100
+Ben Duckett,WICKETKEEPER,Left,no-bowling,150
+Jamie Smith,WICKETKEEPER,Right,no-bowling,150
+Tristan Stubbs,Batter / Wicketkeeper,Right,right off-spin,200
+Finn Allen,WICKETKEEPER,Right,no-bowling,150
+Ayush Mhatre,Batter,Right,right off-spin,30
+Priyansh Arya,Batter,Left,no-bowling,30
+Angkrish Raghuvanshi,Batter,Right,left off-spin,30
+Vaibhav Suryavanshi,Batter,Left,left off-spin,30
+Nehal Wadhera,Batter,Left,right leg-spin,30
+Swastik Chikara,BATTER,Right,right off-spin,30
+Abhimanyu Easwaran,BATTER,Right,right leg-spin,30
+Virat Singh,BATTER,Left,right medium-fast,30
+Akash Singh,Bowler (Left-arm Fast),Right,left fast,30
+Anshul Kamboj,Bowler (Right-arm Fast),Right,right medium-fast,30
+Rasikh Salam,Bowler (Right-arm Fast),Right,right medium-fast,30
+Gurjapneet Singh,Bowler (Left-arm Fast),Right,left medium-fast,30
+Kartik Tyagi,Bowler,Right,right fast,30
+Mukesh Choudhary,Bowler (Left-arm Medium),Left,left medium-fast,30
+Prince Yadav,Bowler (Right-arm Fast),Right,right medium-fast,30
+Naman Dhir,All-Rounder,Right,right off-spin,30
+Corbin Bosch,All-Rounder,Right,right fast,30
+Prashant Veer,ALL-ROUNDER,Left,left off-spin,30
+Harsh Dubey,All-Rounder,Left,left off-spin,30
+Ramakrishna Ghosh,All Rounder,Right,right medium-fast,30
+Urvil Patel,Wicketkeeper-Batter,Right,no-bowling,30
+Kartik Sharma,WICKETKEEPER,Left,no-bowling,30
+Mukul Choudhary,WICKETKEEPER,Right,no-bowling,30
+Robin Minz,Wicketkeeper-Batter,Left,no-bowling,30
+Kumar Kushagra,Wicketkeeper-Batter,Right,no-bowling,30
+Anuj Rawat,Wicketkeeper-Batter,Left,no-bowling,30
+Kunal Rathore,Wicketkeeper-Batter,Left,no-bowling,30
+Suyash Sharma,Bowler (Leg-spin),Right,right leg-spin,30
+Zeeshan Ansari,Bowler (Leg-spin),Right,right leg-spin,30
+Digvesh Rathi,Bowler,Right,right off-spin,30
+Mayank Markande,Bowler,Right,right leg-spin,30
+M Siddharth,Bowler (Left-arm Spin),Right,left off-spin,30
+Prithvi Shaw,BATTER,Right,no-bowling,100
+Steve Smith,BATTER,Right,right leg-spin,100
+Reeza Hendricks,BATTER,Right,right off-spin,100
+Sameer Rizvi,Batter,Right,right off-spin,100
+Karun Nair,Batter,Right,right off-spin,100
+Sarfaraz Khan,BATTER,Right,right leg-spin,100
+Jake Fraser-McGurk,BATTER,Right,right leg-spin,100
+Devon Conway,BATTER,Left,right medium-fast,100
+Umran Malik,Bowler (Express Pace),Right,right fast,100
+Arshad Khan,Bowler (Left-arm Fast),Left,left medium-fast,100
+Mohsin Khan,Bowler (Left-arm Fast),Left,left fast,100
+Kyle Jamieson,BOWLER,Right,right fast,100
+T Natarajan,Bowler (Left-arm Medium),Left,left medium-fast,100
+Vaibhav Arora,Bowler (Right-arm Fast),Right,right medium-fast,100
+Ishant Sharma,Bowler (Right-arm Fast),Right,right fast,100
+Avesh Khan,Bowler (Right-arm Fast),Right,right fast,100
+Kamindu Mendis,All-Rounder,Left,left off-spin,100
+Riyan Parag,All-Rounder,Right,right leg-spin,100
+Krunal Pandya,All-Rounder (Spin),Left,left off-spin,100
+Shahbaz Ahmed,All-Rounder (Spin),Left,left off-spin,100
+Shreyas Gopal,All-Rounder (Leg-spin),Right,right leg-spin,100
+Vipraj Nigam,All-Rounder,Right,right leg-spin,100
+Jamie Overton,All-Rounder,Right,right fast,100
+Sherfane Rutherford,All-Rounder,Left,right medium-fast,100
+Pathum Nissanka,BATTER,Right,no-bowling,100
+Tim Robinson,BATTER,Right,right medium-fast,100
+Rahul Tripathi,BATTER,Right,right medium-fast,100
+Mayank Agarawal,BATTER,Right,no-bowling,100
+Matthew Breetzke,Batter,Right,no-bowling,200
+Eshan Malinga,Bowler (Right-arm Fast),Left,right fast,100
+Dushmantha Chameera,Bowler (Right-arm Fast),Right,right fast,100
+Mustafizur Rahman,BOWLER,Left,left fast,100
+Kuldeep Sen,Bowler (Right-arm Fast),Right,right fast,100
+Navdeep Saini,Bowler (Right-arm Fast),Right,right fast,100
+Akash Deep,BOWLER,Right,right fast,100
+Spencer Johnson,BOWLER,Left,left fast,100
+Shivam Mavi,BOWLER,Right,right fast,100
+Deepak Hooda,ALL-ROUNDER,Right,right off-spin,100
+Shardul Thakur,ALL-ROUNDER,Right,right medium-fast,100
+Jason Holder,ALL-ROUNDER,Right,right fast,100
+Daryl Mitchell,ALL-ROUNDER,Right,right medium-fast,100
+Daniel Sams,ALL-ROUNDER,Right,left fast,100
+Sean Abbott,ALL-ROUNDER,Right,right fast,100
+Matthew Short,ALL-ROUNDER,Right,right off-spin,100
+Michael Bracewell,ALL-ROUNDER,Left,right off-spin,100
+Abhinav Manohar,BATTER,Right,right leg-spin,100
+Atharva Taide,BATTER,Left,left off-spin,100
+Anmolpreet Singh,BATTER,Right,right off-spin,100
+Jason Behrendorff,BOWLER,Right,left fast,100
+Lockie Ferguson,BOWLER,Right,right fast,100
+Umesh Yadav,BOWLER,Right,right fast,100
+Alzarri Joseph,BOWLER,Right,right fast,100
+Shamar Joseph,BOWLER,Left,right fast,100
+Richard Gleeson,BOWLER,Right,right fast,100
+Nathan Ellis,BOWLER,Right,right fast,100
+Jofra Archer,BOWLER,Right,right fast,100
+Jhye Richardson,BOWLER,Right,right fast,100
+Dasun Shanaka,ALL-ROUNDER,Right,right medium-fast,100
+Dwaine Pretorius,ALL-ROUNDER,Right,right medium-fast,100
+Fazalhaq Farooqi,ALL-ROUNDER,Right,left fast,100
+Zakary Foulkes,ALL-ROUNDER,Right,right medium-fast,100

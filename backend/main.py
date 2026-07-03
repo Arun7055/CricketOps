@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import team, players, auction, visualizations, news
+from app.api.v1.endpoints import team, players, auction, visualizations, news, lobby
 
 app = FastAPI(title="Cricket Intelligence Engine")
 
@@ -20,10 +20,11 @@ app.add_middleware(
 
 # Register the API Routers
 app.include_router(team.router, prefix="/api/v1/team", tags=["Team Selection"])
-app.include_router(auction.router, prefix="/api/v1/auction", tags=["Auction Strategy"])
+app.include_router(auction.router, prefix="/api/v1/auction", tags=["AMultiplayer Auction"])
 app.include_router(players.router, prefix="/api/v1/players", tags=["Players"])
 app.include_router(visualizations.router, prefix="/api/v1/lab", tags=["Laboratory"])
 app.include_router(news.router, prefix="/api/v1/news", tags=["Intelligence Wire"])
+app.include_router(lobby.router, prefix="/api/v1/lobby", tags=["Party Lobbies"])
 
 @app.get("/")
 def health_check():
