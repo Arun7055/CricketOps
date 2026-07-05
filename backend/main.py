@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.endpoints import team, players, auction, visualizations, news, lobby
+import asyncio
 
 app = FastAPI(title="Cricket Intelligence Engine")
 
@@ -17,6 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_event():
+    # Spin up the background worker in a separate asynchronous thread
+    asyncio.create_task(auction.consume_bids())
 
 # Register the API Routers
 app.include_router(team.router, prefix="/api/v1/team", tags=["Team Selection"])

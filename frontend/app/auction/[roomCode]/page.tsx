@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Users, Gavel, History, Activity, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Users, Gavel, History, Activity, AlertTriangle, ShieldCheck, FastForward } from "lucide-react";
 
 export default function LiveAuctionArena() {
   const router = useRouter();
@@ -22,6 +22,18 @@ export default function LiveAuctionArena() {
   const [currentBid, setCurrentBid] = useState(0); 
   const [highestBidder, setHighestBidder] = useState<string>("None");
   const [myPurse, setMyPurse] = useState(10000); // 100 Cr
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  const [hasVoted, setHasVoted] = useState(false);
+  const [voteCount, setVoteCount] = useState({ current: 0, required: 0 });
+
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev && prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
 
   useEffect(() => {
     // 1. Authenticate the local browser session
@@ -71,7 +83,22 @@ export default function LiveAuctionArena() {
       } else if (data.type === "AUCTION_UPDATE") {
         setCurrentBid(data.current_bid);
         setHighestBidder(data.highest_bidder_name);
+        setTimeLeft(15);
+        setHasVoted(false);
+        setVoteCount({ current: 0, required: 0 });
         addLog(`${data.highest_bidder_name} holds the bid at ₹${data.current_bid}L!`, "bid");
+      }else if (data.type === "VOTE_UPDATE") {
+        setVoteCount({ current: data.current, required: data.required });
+      }else if (data.type === "PLAYER_SOLD") {
+        setTimeLeft(0);
+        setHasVoted(false);
+        setVoteCount({ current: 0, required: 0 });
+        addLog(data.message, "system");
+        
+        // Wait 3 seconds so users can read who won, then fetch the next player
+        setTimeout(() => {
+          fetchLobbyState();
+        }, 3000);
       }
     };
 
@@ -100,6 +127,12 @@ export default function LiveAuctionArena() {
         amount: nextBid,
       })
     );
+  };
+
+  const voteForceSell = () => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+    setHasVoted(true);
+    socketRef.current.send(JSON.stringify({ action: "FORCE_SELL_VOTE" }));
   };
 
   if (!session) return null; // Prevent flash of UI before redirect
@@ -155,14 +188,29 @@ export default function LiveAuctionArena() {
             </div>
 
             {/* LIVE BID STATUS */}
-            <div className="w-full bg-slate-950 border border-slate-800 rounded-xl p-6 flex items-center justify-between">
-              <div className="text-left">
+            <div className="w-full bg-slate-950 border border-slate-800 rounded-xl p-6 flex items-center justify-between relative overflow-hidden">
+              
+              {/* The flashing timer background effect */}
+              {timeLeft !== null && timeLeft <= 5 && timeLeft > 0 && (
+                <div className="absolute inset-0 bg-red-900/20 animate-pulse"></div>
+              )}
+
+              <div className="text-left relative z-10">
                 <p className="text-xs uppercase font-bold text-slate-500 tracking-wider mb-1">Current Highest Bid</p>
                 <p className="text-3xl font-black text-emerald-400 flex items-center gap-2">
                   ₹{currentBid} <span className="text-lg">Lakhs</span>
                 </p>
               </div>
-              <div className="text-right">
+
+              {/* NEW: The Countdown Clock */}
+              {timeLeft !== null && timeLeft > 0 && (
+                <div className="text-center relative z-10 px-4">
+                  <p className="text-3xl font-black text-red-500">{timeLeft}s</p>
+                  <p className="text-[9px] uppercase font-bold text-red-500/70 tracking-widest">Going...</p>
+                </div>
+              )}
+
+              <div className="text-right relative z-10">
                 <p className="text-xs uppercase font-bold text-slate-500 tracking-wider mb-1">Highest Bidder</p>
                 <p className="text-xl font-bold text-white">{highestBidder}</p>
               </div>
@@ -170,7 +218,7 @@ export default function LiveAuctionArena() {
           </div>
 
           {/* PLAYER CONTROLS */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Remaining Purse</p>
@@ -180,9 +228,28 @@ export default function LiveAuctionArena() {
             </div>
 
             <button 
+              onClick={voteForceSell}
+              disabled={!isConnected || hasVoted}
+              className={`border rounded-xl font-black uppercase tracking-widest text-xs flex flex-col items-center justify-center transition-all shadow-md
+                ${hasVoted 
+                  ? "bg-slate-800 border-slate-700 text-slate-400 opacity-70" 
+                  : "bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"}`}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <FastForward className="w-4 h-4" />
+                <span>{hasVoted ? "Waiting on others" : "Pass / End"}</span>
+              </div>
+              {voteCount.required > 0 && (
+                <span className="text-[9px] text-blue-400 font-bold bg-blue-950/50 px-2 py-0.5 rounded">
+                  {voteCount.current} / {voteCount.required} Voted
+                </span>
+              )}
+            </button>
+
+            <button 
               onClick={placeBid}
               disabled={!isConnected}
-              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-lg rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-lg rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 py-4"
             >
               <Gavel className="w-5 h-5" />
               Bid ₹{currentBid + 50}L
