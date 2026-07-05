@@ -75,37 +75,93 @@ async def publish_bid_to_queue(lobby_id: str, participant_id: str, bid_amount: i
 
 
 # ==========================================
-# 3. THE LIVE WEBSOCKET ROUTE
+# 3. WEBSOCKET ENDPOINT (FRONTEND CONNECTION)
 # ==========================================
 @router.websocket("/ws/{lobby_id}/{participant_id}")
 async def auction_endpoint(websocket: WebSocket, lobby_id: str, participant_id: str):
-    """
-    The frontend connects here. It stays open forever until the user leaves.
-    """
     await manager.connect(websocket, lobby_id)
-    
     try:
-        # Tell everyone in the room that a new friend joined
-        await manager.broadcast_to_lobby(lobby_id, {
-            "type": "SYSTEM_MESSAGE",
-            "message": f"Participant {participant_id} joined the war room."
-        })
-
-        # Listen for bids from this specific user's browser
         while True:
-            data = await websocket.receive_json()
+            # 1. Receive the raw message from Next.js
+            raw_data = await websocket.receive_text()
             
-            if data.get("action") == "PLACE_BID":
-                bid_amount = data.get("amount")
-                # Immediately offload the bid to the Queue to prevent race conditions
-                await asyncio.create_task(publish_bid_to_queue(lobby_id, participant_id, bid_amount))
+            # 2. Parse the JSON
+            parsed_data = json.loads(raw_data)
+            
+            # 3. Safely extract the 'action' variable (GUARANTEES it is defined)
+            action = parsed_data.get("action")
+            
+            # 4. Route the action
+            if action == "PLACE_BID":
+                # Throw it in the queue for the worker to handle
+                await publish_bid_to_queue(lobby_id, participant_id, parsed_data.get("amount", 0))
                 
+            elif action == "FORCE_SELL_VOTE":
+                print(f"📩 Vote received from {participant_id}")
+                if lobby_id not in lobby_skip_votes:
+                    lobby_skip_votes[lobby_id] = set()
+                    
+                lobby_skip_votes[lobby_id].add(participant_id)
+                
+                db = SessionLocal()
+                try:
+                    total_players = db.query(Participant).filter(Participant.lobby_id == lobby_id).count()
+                finally:
+                    db.close()
+                    
+                current_votes = len(lobby_skip_votes[lobby_id])
+                print(f"🗳️ {current_votes}/{total_players} have voted to skip.")
+                
+                await manager.broadcast_to_lobby(lobby_id, {
+                    "type": "VOTE_UPDATE",
+                    "current": current_votes,
+                    "required": total_players
+                })
+                
+                # If everyone agrees, force the sale instantly
+                if current_votes >= total_players and total_players > 0:
+                    print("🚀 CONSENSUS! Forcing instant sale.")
+                    lobby_skip_votes[lobby_id].clear()
+                    if lobby_id in lobby_timers:
+                        lobby_timers[lobby_id].cancel()
+                    
+                    await finalize_auction(lobby_id, immediate=True)
+
+            elif action == "FINISH_AUCTION_CHECK":
+                db = SessionLocal()
+                try:
+                    participants = db.query(Participant).filter(Participant.lobby_id == lobby_id).all()
+                    
+                    # Check actual draft counts for everyone
+                    short_players = []
+                    for p in participants:
+                        pick_count = db.query(DraftPick).filter(DraftPick.participant_id == p.id).count()
+                        if pick_count < 12:
+                            short_players.append(p.username)
+                    
+                    if not short_players: # If the short_players list is empty, everyone has 12!
+                        # Mark lobby as completed
+                        lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
+                        if lobby:
+                            lobby.status = "completed"
+                            db.commit()
+                        
+                        # Tell everyone to redirect!
+                        await manager.broadcast_to_lobby(lobby_id, {
+                            "type": "AUCTION_COMPLETED",
+                            "message": "All teams have 12 players! Redirecting to Analysis..."
+                        })
+                    else:
+                        # Warn the room if people are short
+                        await manager.broadcast_to_lobby(lobby_id, {
+                            "type": "SYSTEM_MESSAGE",
+                            "message": f"⚠️ Cannot end yet. Still need players: {', '.join(short_players)}"
+                        })
+                finally:
+                    db.close()
+                    
     except WebSocketDisconnect:
         manager.disconnect(websocket, lobby_id)
-        await manager.broadcast_to_lobby(lobby_id, {
-            "type": "SYSTEM_MESSAGE",
-            "message": f"Participant {participant_id} disconnected."
-        })
 
 # ==========================================
 # 4. LOBBY STATE API (Fetches the active player)
@@ -154,7 +210,7 @@ def get_auction_state(lobby_id: str, db: Session = Depends(get_db)):
     }
 
 # ==========================================
-# 2.5 THE RABBITMQ CONSUMER (THE BRAIN)
+# 5. THE RABBITMQ CONSUMER (THE BRAIN)
 # ==========================================
 async def consume_bids():
     """Constantly listens to the queue, validates DB, and broadcasts updates."""
@@ -178,7 +234,7 @@ async def consume_bids():
                         lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
                         
                         # Only accept the bid if it's strictly higher than the current price
-                        if lobby and bid_amount > lobby.current_bid:
+                        if lobby and lobby.current_player_id and bid_amount > lobby.current_bid:
                             lobby.current_bid = bid_amount
                             lobby.highest_bidder_id = participant_id
                             db.commit()
@@ -193,31 +249,62 @@ async def consume_bids():
                                 "current_bid": bid_amount,
                                 "highest_bidder_name": bidder_name
                             })
-                            if lobby_id in lobby_timers:
-                                lobby_timers[lobby_id].cancel()
-                                lobby_timers[lobby_id] = asyncio.create_task(finalize_auction(lobby_id))
-
-                        if lobby_id in lobby_skip_votes:
+                            
+                            # --- FIXED LOGIC START ---
+                            
+                            # 4. Clear skip votes since a new valid bid was placed
+                            if lobby_id in lobby_skip_votes:
                                 lobby_skip_votes[lobby_id].clear()
 
+                            # 5. Cancel the old timer if it exists
+                            if lobby_id in lobby_timers:
+                                lobby_timers[lobby_id].cancel()
+                                
+                            # 6. ALWAYS start a fresh 15-second timer for a successful bid!
+                            print(f"⏱️ Valid bid of {bid_amount}L! Starting 15s timer for {lobby_id}...")
+                            lobby_timers[lobby_id] = asyncio.create_task(finalize_auction(lobby_id))
+                            
+                            # --- FIXED LOGIC END ---
+
     except Exception as e:
-        print(f"RabbitMQ Consumer Error: {e}")
+        print(f"🚨 RabbitMQ Consumer Error: {e}")
 
 # ==========================================
-# 2.6 THE SOLD TIMER FUNCTION
+# 6 THE SOLD TIMER FUNCTION
 # ==========================================
-async def finalize_auction(lobby_id: str):
-    """Waits 15 seconds. If not cancelled by a new bid, sells the player."""
+async def finalize_auction(lobby_id: str, immediate: bool = False):
+    print(f"▶️ [START] Finalize Triggered for {lobby_id}. Immediate? {immediate}")
     try:
-        await asyncio.sleep(15)
-        
-        # If we wake up after 15s without being cancelled, the hammer drops!
-        with SessionLocal() as db:
-            lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
-            if not lobby or not lobby.current_player_id:
-                return
+        if not immediate:
+            await asyncio.sleep(15)
             
+        print(f"⏳ [WAKE UP] Timer finished for {lobby_id}. Connecting to DB...")
+        
+        # Using strict try/finally to ensure DB lock is released
+        db = SessionLocal()
+        try:
+            lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
+            if not lobby:
+                print("🛑 [EARLY RETURN] Lobby not found in DB!")
+                return
+            if not lobby.current_player_id:
+                print("🛑 [EARLY RETURN] No active player on the block!")
+                return
+
+            # SCENARIO A: No one bid
             if not lobby.highest_bidder_id:
+                print("⚠️ [UNSOLD] No highest bidder. Marking as unsold.")
+                
+                # --- NEW: Save as unsold so they don't appear again! ---
+                unsold_pick = DraftPick(
+                    lobby_id=lobby.id,
+                    participant_id=None, # Nobody bought them
+                    player_id=lobby.current_player_id,
+                    sold_price=0
+                )
+                db.add(unsold_pick)
+                # --------------------------------------------------------
+
                 lobby.current_player_id = None
                 lobby.current_bid = 0
                 db.commit()
@@ -230,64 +317,70 @@ async def finalize_auction(lobby_id: str):
                 })
                 return
             
-            elif action == "FORCE_SELL_VOTE":
-                if lobby_id not in lobby_skip_votes:
-                    lobby_skip_votes[lobby_id] = set()
-                    
-                lobby_skip_votes[lobby_id].add(participant_id)
-                
-                # Check how many players are in this room
-                with SessionLocal() as db:
-                    total_players = db.query(Participant).filter(Participant.lobby_id == lobby_id).count()
-                    
-                current_votes = len(lobby_skip_votes[lobby_id])
-                
-                # Tell the UI to update the vote counter
-                await manager.broadcast_to_lobby(lobby_id, {
-                    "type": "VOTE_UPDATE",
-                    "current": current_votes,
-                    "required": total_players
-                })
-            
-            if current_votes >= total_players and total_players > 0:
-                    lobby_skip_votes[lobby_id].clear()
-                    if lobby_id in lobby_timers:
-                        lobby_timers[lobby_id].cancel()
-                    
-                    await finalize_auction(lobby_id)
+            # SCENARIO B: Player is Sold
+            print(f"✅ [SELLING] Found highest bidder: {lobby.highest_bidder_id} for {lobby.current_bid}L")
+            winning_amount = lobby.current_bid
+            highest_bidder_id = lobby.highest_bidder_id
+            player_id = lobby.current_player_id
 
-            # 1. Create the Draft Pick
+            # 1. Update Purse Safely
+            bidder = db.query(Participant).filter(Participant.id == highest_bidder_id).first()
+            winner_name = bidder.username if bidder else "Unknown"
+            if bidder:
+                bidder.purse_remaining -= winning_amount
+                if bidder.squad_size is None:
+                    bidder.squad_size = 0
+                bidder.squad_size += 1
+                
+            # 2. Add the Draft Pick
             pick = DraftPick(
                 lobby_id=lobby.id,
-                participant_id=lobby.highest_bidder_id,
-                player_id=lobby.current_player_id,
-                winning_bid=lobby.current_bid
+                participant_id=highest_bidder_id,
+                player_id=player_id,
+                sold_price=winning_amount
             )
             db.add(pick)
 
-            # 2. Deduct money from the winner
-            bidder = db.query(Participant).filter(Participant.id == lobby.highest_bidder_id).first()
-            if bidder:
-                bidder.purse_remaining -= lobby.current_bid
-                bidder.squad_size += 1
-                winner_name = bidder.username
-            else:
-                winner_name = "Unknown"
-
-            # 3. Clear the block for the next player
+            # 3. Clear the block
             lobby.current_player_id = None
             lobby.current_bid = 0
             lobby.highest_bidder_id = None
+            
             db.commit()
+            print(f"💾 [SAVED] Successfully saved Draft Pick for {winner_name}!")
 
-            # 4. Broadcast the Sold Event to all friends
-            await manager.broadcast_to_lobby(lobby_id, {
-                "type": "PLAYER_SOLD",
-                "buyer": winner_name,
-                "amount": pick.winning_bid,
-                "message": f"🔨 SOLD! Player goes to {winner_name} for ₹{pick.winning_bid}L!"
-            })
+        finally:
+            db.close() # FORCES the database to unlock so the next fetch works
+
+        # 4. Broadcast the successful sale
+        print("📡 [BROADCAST] Telling frontend to update...")
+        await manager.broadcast_to_lobby(lobby_id, {
+            "type": "PLAYER_SOLD",
+            "buyer": winner_name,
+            "amount": winning_amount,
+            "message": f"🔨 SOLD! Player goes to {winner_name} for ₹{winning_amount}L!"
+        })
 
     except asyncio.CancelledError:
-        # A new bid was placed before 15s ended. Cancel this thread cleanly!
-        pass
+        print("⏹️ [CANCELLED] Timer reset because a new bid came in!")
+    except Exception as e:
+        print(f"🚨 [FATAL ERROR] {e}")
+
+# ==========================================
+# 7.GET PARTICIPANT PURSE AND SIZE
+# ==========================================
+@router.get("/participant/{participant_id}/purse")
+def get_participant_purse(participant_id: str):
+    """Fetches the real-time purse balance and squad size from the DB."""
+    with SessionLocal() as db:
+        participant = db.query(Participant).filter(Participant.id == participant_id).first()
+        if not participant:
+            raise HTTPException(status_code=404, detail="Participant not found")
+            
+        # --- NEW: Dynamically count the actual draft picks! ---
+        actual_squad_size = db.query(DraftPick).filter(DraftPick.participant_id == participant_id).count()
+        
+        return {
+            "purse_remaining": participant.purse_remaining,
+            "squad_size": actual_squad_size
+        }

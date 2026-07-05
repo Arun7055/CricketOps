@@ -23,16 +23,21 @@ export default function LiveAuctionArena() {
   const [highestBidder, setHighestBidder] = useState<string>("None");
   const [myPurse, setMyPurse] = useState(10000); // 100 Cr
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [squadSize, setSquadSize] = useState(0);
 
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState({ current: 0, required: 0 });
 
   useEffect(() => {
+    // If timer is null or zero, do absolutely nothing
     if (timeLeft === null || timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev && prev > 0 ? prev - 1 : 0));
+
+    // setTimeout automatically cleans itself up and guarantees exact 1-second intervals
+    const timerId = setTimeout(() => {
+      setTimeLeft(timeLeft - 1);
     }, 1000);
-    return () => clearInterval(timer);
+
+    return () => clearTimeout(timerId);
   }, [timeLeft]);
 
   useEffect(() => {
@@ -51,13 +56,19 @@ export default function LiveAuctionArena() {
     // 2. Fetch Initial Lobby State (The active player)
     const fetchLobbyState = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/auction/state/${lobbyId}`);
+        // We add a timestamp to the URL to force the browser to skip the cache!
+        const res = await fetch(`http://127.0.0.1:8000/api/v1/auction/state/${lobbyId}?t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
+          if (data.status === "completed") {
+            addLog("All players sold! Auction Over.", "system");
+            return;
+          }
           if (data.player) {
             setPlayerOnBlock(data.player);
             setCurrentBid(data.current_bid);
             setHighestBidder(data.highest_bidder_name);
+            setTimeLeft(null); // Clear timer when a new player drops
           }
         }
       } catch (err) {
@@ -66,6 +77,20 @@ export default function LiveAuctionArena() {
     };
     
     fetchLobbyState();
+
+    const fetchMyPurse = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/v1/auction/participant/${participantId}/purse?t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMyPurse(data.purse_remaining);
+          setSquadSize(data.squad_size);
+        }
+      } catch (err) {
+        console.error("Failed to fetch purse", err);
+      }
+    };
+    fetchMyPurse();
 
     // 3. Open the real-time WebSocket connection
     const wsUrl = `ws://127.0.0.1:8000/api/v1/auction/ws/${lobbyId}/${participantId}`;
@@ -91,14 +116,29 @@ export default function LiveAuctionArena() {
         setVoteCount({ current: data.current, required: data.required });
       }else if (data.type === "PLAYER_SOLD") {
         setTimeLeft(0);
-        setHasVoted(false);
+        setHasVoted(false); 
         setVoteCount({ current: 0, required: 0 });
+        
         addLog(data.message, "system");
         
-        // Wait 3 seconds so users can read who won, then fetch the next player
+        // --- FIXED: Use sessionStorage directly to avoid the React null crash! ---
+        const myUsername = sessionStorage.getItem("crick_username");
+        if (data.buyer === myUsername) {
+           // If we won, immediately ask the DB for our new official balance!
+           setTimeout(() => { fetchMyPurse(); }, 500); 
+        }
+        
+        // Wait 3 seconds, then get the next player
         setTimeout(() => {
           fetchLobbyState();
         }, 3000);
+      }else if (data.type === "AUCTION_COMPLETED") {
+        addLog(data.message, "system");
+        
+        // Wait 2 seconds so they can read the message, then teleport them!
+        setTimeout(() => {
+          router.push(`/selection/${lobbyId}`);
+        }, 2000);
       }
     };
 
@@ -135,6 +175,11 @@ export default function LiveAuctionArena() {
     socketRef.current.send(JSON.stringify({ action: "FORCE_SELL_VOTE" }));
   };
 
+  const requestFinishAuction = () => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+    socketRef.current.send(JSON.stringify({ action: "FINISH_AUCTION_CHECK" }));
+  };
+
   if (!session) return null; // Prevent flash of UI before redirect
 
   return (
@@ -151,6 +196,14 @@ export default function LiveAuctionArena() {
           </div>
         </div>
 
+        <button 
+          onClick={requestFinishAuction}
+          className="bg-slate-900 border border-indigo-500/50 text-indigo-400 hover:bg-indigo-950 hover:text-indigo-300 font-black uppercase tracking-widest text-xs rounded-xl shadow-md transition-all flex flex-col items-center justify-center"
+        >
+          <Activity className="w-4 h-4 mb-1" />
+            Analyze Teams
+        </button>
+
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Playing As</p>
@@ -161,6 +214,8 @@ export default function LiveAuctionArena() {
             {isConnected ? "Connected" : "Disconnected"}
           </div>
         </div>
+
+        
       </header>
 
       {/* MAIN BATTLEGROUND */}
@@ -219,12 +274,17 @@ export default function LiveAuctionArena() {
 
           {/* PLAYER CONTROLS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Remaining Purse</p>
-                <p className="text-xl font-black text-white">₹{myPurse}L</p>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 flex flex-col justify-between shadow-inner">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purse</span>
+                <span className="text-lg font-black text-emerald-400">₹{myPurse}L</span>
               </div>
-              <ShieldCheck className="text-blue-500/50 w-8 h-8" />
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Slots Filled</span>
+                <span className="text-lg font-black text-white">
+                  {squadSize} <span className="text-slate-600 text-sm">/ 15</span>
+                </span>
+              </div>
             </div>
 
             <button 
@@ -248,12 +308,15 @@ export default function LiveAuctionArena() {
 
             <button 
               onClick={placeBid}
-              disabled={!isConnected}
+              disabled={!isConnected || timeLeft === 0 || highestBidder === session.username} 
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-lg rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 py-4"
             >
               <Gavel className="w-5 h-5" />
               Bid ₹{currentBid + 50}L
             </button>
+
+            
+
           </div>
 
         </div>

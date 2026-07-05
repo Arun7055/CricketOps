@@ -87,7 +87,7 @@ class DraftPick(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     lobby_id = Column(UUID(as_uuid=True), ForeignKey("auction_lobbies.id", ondelete="CASCADE"), nullable=False, index=True)
-    participant_id = Column(UUID(as_uuid=True), ForeignKey("participants.id", ondelete="CASCADE"), nullable=False, index=True)
+    participant_id = Column(UUID(as_uuid=True), ForeignKey("participants.id", ondelete="CASCADE"), nullable=True, index=True)
     player_id = Column(UUID(as_uuid=True), ForeignKey("players.id", ondelete="CASCADE"), nullable=False)
     
     sold_price = Column(Integer, nullable=False)
