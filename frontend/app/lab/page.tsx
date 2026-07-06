@@ -44,7 +44,7 @@ export default function PlayerLabPage() {
     setLoading(true);
     setError(null);
 
-    fetch(`http://127.0.0.1:8000/api/v1/lab/player-lab/${encodeURIComponent(activeQuery)}`)
+    fetch(`https://cricketops.onrender.com/api/v1/lab/player-lab/${encodeURIComponent(activeQuery)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`No laboratory ledgers found for "${activeQuery}"`);
         return res.json();

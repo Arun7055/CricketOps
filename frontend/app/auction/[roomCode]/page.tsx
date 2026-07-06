@@ -61,7 +61,7 @@ export default function LiveAuctionArena() {
     const fetchLobbyState = async () => {
       try {
         // We add a timestamp to the URL to force the browser to skip the cache!
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/auction/state/${lobbyId}?t=${Date.now()}`);
+        const res = await fetch(`https://cricketops.onrender.com/api/v1/auction/state/${lobbyId}?t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === "completed") {
@@ -87,7 +87,7 @@ export default function LiveAuctionArena() {
 
     const fetchMyPurse = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/auction/participant/${participantId}/purse?t=${Date.now()}`);
+        const res = await fetch(`https://cricketops.onrender.com/api/v1/auction/participant/${participantId}/purse?t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           setMyPurse(data.purse_remaining);
@@ -100,7 +100,7 @@ export default function LiveAuctionArena() {
     fetchMyPurse();
 
     // 3. Open the real-time WebSocket connection
-    const wsUrl = `ws://127.0.0.1:8000/api/v1/auction/ws/${lobbyId}/${participantId}`;
+    const wsUrl = `wss://cricketops.onrender.com/api/v1/auction/ws/${lobbyId}/${participantId}`;
     const ws = new WebSocket(wsUrl);
     socketRef.current = ws;
 

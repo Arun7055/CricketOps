@@ -20,7 +20,7 @@ export default function AuctionLandingPage() {
     setError(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/lobby/create", {
+      const res = await fetch("https://cricketops.onrender.com/api/v1/lobby/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim() }),
@@ -51,7 +51,7 @@ export default function AuctionLandingPage() {
     setError(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/lobby/join", {
+      const res = await fetch("https://cricketops.onrender.com/api/v1/lobby/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

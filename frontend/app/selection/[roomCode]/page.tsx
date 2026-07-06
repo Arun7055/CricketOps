@@ -41,7 +41,7 @@ export default function SelectionAnalysisPage() {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/team/${lobbyId}?t=${Date.now()}`);
+        const res = await fetch(`https://cricketops.onrender.com/api/v1/team/${lobbyId}?t=${Date.now()}`);
         if (res.ok) {
           const data = await res.json();
           setTeams(data.teams);
