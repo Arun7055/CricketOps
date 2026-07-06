@@ -2,9 +2,8 @@
 
 CricketOps is a high-performance, full-stack cricket auction simulator and analytics dashboard. Designed to replicate the intense, fast-paced environment of a live franchise draft, the platform combines a robust real-time bidding engine with deep, data-driven scouting reports backed by a custom ETL pipeline and LLM-generated insights.
 
-## 🚀 Live Environments
-* **Frontend (Next.js):** [[Insert Vercel URL](https://cricket-ops.vercel.app/)]
-* **Backend (FastAPI):** [[Insert Render URL](https://cricketops.onrender.com)]
+## 🚀 Live Demo
+* **Frontend (Next.js), Backend(FastAPI):** [[Click here](https://cricket-ops.vercel.app/)]
 
 ---
 
