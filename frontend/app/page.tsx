@@ -7,10 +7,10 @@ export default function LandingPage() {
       
       {/* HERO BANNER */}
       <div className="space-y-3 max-w-4xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-400">
+        {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           v2.4 Multi-Agent Roster Engine Live
-        </div>
+        </div> */}
 
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight">
           Next-Generation <span className="bg-gradient-to-r from-blue-500 via-indigo-400 to-purple-500 bg-clip-text text-transparent">Cricket Intelligence</span>
