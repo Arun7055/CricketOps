@@ -159,6 +159,28 @@ async def auction_endpoint(websocket: WebSocket, lobby_id: str, participant_id: 
                         })
                 finally:
                     db.close()
+
+            elif action == "START_AUCTION":
+                db = SessionLocal()
+                try:
+                    lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
+                    if lobby:
+                        # Change status from waiting to active
+                        lobby.status = "active"
+                        db.commit()
+                        
+                        # Tell all connected clients to switch their UI
+                        await manager.broadcast_to_lobby(lobby_id, {
+                            "type": "AUCTION_STARTED",
+                            "message": "The auction has begun!"
+                        })
+                        
+                        # Start the timer for the very first player automatically
+                        if lobby_id in lobby_timers:
+                            lobby_timers[lobby_id].cancel()
+                        lobby_timers[lobby_id] = asyncio.create_task(finalize_auction(lobby_id))
+                finally:
+                    db.close()
                     
     except WebSocketDisconnect:
         manager.disconnect(websocket, lobby_id)
@@ -197,6 +219,17 @@ def get_auction_state(lobby_id: str, db: Session = Depends(get_db)):
         if bidder:
             highest_bidder_name = bidder.username
 
+    participants = db.query(Participant).filter(Participant.lobby_id == lobby_id).all()
+    competitors = []
+        
+    for p in participants:
+        picks = db.query(DraftPick, Player).join(Player, DraftPick.player_id == Player.id).filter(DraftPick.participant_id == p.id).all()
+        competitors.append({
+            "username": p.username,
+            "purse": p.purse_remaining,
+            "roster": [{"name": player.name, "price": pick.sold_price} for pick, player in picks]
+        })
+
     return {
         "status": lobby.status,
         "player": {
@@ -206,7 +239,10 @@ def get_auction_state(lobby_id: str, db: Session = Depends(get_db)):
             "base_price": active_player.base_price or 50
         },
         "current_bid": lobby.current_bid,
-        "highest_bidder_name": highest_bidder_name
+        "highest_bidder_name": highest_bidder_name,
+        "competitors": competitors,
+        "status": lobby.status,
+        "host_id": str(participants[0].id) if participants else None
     }
 
 # ==========================================
@@ -232,9 +268,16 @@ async def consume_bids():
                     # 1. Validate against the PostgreSQL Database
                     with SessionLocal() as db:
                         lobby = db.query(Lobby).filter(Lobby.id == lobby_id).first()
+                        participant = db.query(Participant).filter(Participant.id == participant_id).first()
+                        # Count current squad size
+                        current_squad_size = db.query(DraftPick).filter(DraftPick.participant_id == participant_id).count()
                         
                         # Only accept the bid if it's strictly higher than the current price
-                        if lobby and lobby.current_player_id and bid_amount > lobby.current_bid:
+                        if (lobby and lobby.current_player_id 
+                            and bid_amount > lobby.current_bid
+                            and participant 
+                            and participant.purse_remaining >= bid_amount
+                            and current_squad_size < 15):
                             lobby.current_bid = bid_amount
                             lobby.highest_bidder_id = participant_id
                             db.commit()

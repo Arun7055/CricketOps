@@ -28,6 +28,10 @@ export default function LiveAuctionArena() {
   const [hasVoted, setHasVoted] = useState(false);
   const [voteCount, setVoteCount] = useState({ current: 0, required: 0 });
 
+  const [competitors, setCompetitors] = useState([]);
+  const [auctionStatus, setAuctionStatus] = useState("waiting");
+  const [lobbyHostId, setLobbyHostId] = useState("");
+
   useEffect(() => {
     // If timer is null or zero, do absolutely nothing
     if (timeLeft === null || timeLeft <= 0) return;
@@ -69,6 +73,9 @@ export default function LiveAuctionArena() {
             setCurrentBid(data.current_bid);
             setHighestBidder(data.highest_bidder_name);
             setTimeLeft(null); // Clear timer when a new player drops
+            setCompetitors(data.competitors)
+            setAuctionStatus(data.status || "waiting");
+            setLobbyHostId(data.host_id);
           }
         }
       } catch (err) {
@@ -139,6 +146,10 @@ export default function LiveAuctionArena() {
         setTimeout(() => {
           router.push(`/selection/${lobbyId}`);
         }, 2000);
+      }else if (data.type === "AUCTION_STARTED") {
+        setAuctionStatus("active");
+        addLog(data.message, "system");
+        fetchLobbyState(); // Refresh to get the first player on the block
       }
     };
 
@@ -180,7 +191,55 @@ export default function LiveAuctionArena() {
     socketRef.current.send(JSON.stringify({ action: "FINISH_AUCTION_CHECK" }));
   };
 
+  const startAuction = () => {
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
+    socketRef.current.send(JSON.stringify({ action: "START_AUCTION" }));
+  };
+
   if (!session) return null; // Prevent flash of UI before redirect
+
+  if (auctionStatus === "waiting") {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-white">
+        <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center">
+          <h1 className="text-4xl font-black uppercase tracking-widest mb-2">Waiting Room</h1>
+          <p className="text-slate-400 mb-8">Room Code: <span className="text-emerald-400 font-bold">{roomCode}</span></p>
+          
+          <div className="bg-slate-950 rounded-xl p-6 mb-8 border border-slate-800 min-h-[200px]">
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Joined Players ({competitors.length})</h2>
+            <div className="flex flex-wrap justify-center gap-3">
+              {competitors.map((comp: any) => (
+                <div key={comp.username} className="bg-slate-800 px-4 py-2 rounded-lg font-bold border border-slate-700">
+                  {comp.username} {comp.username === session?.username && "(You)"}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* HOST CONTROLS */}
+          {session?.participantId === lobbyHostId ? (
+            <>
+              <button 
+                onClick={startAuction}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 px-4 rounded-xl text-xl transition-all uppercase tracking-widest shadow-lg active:scale-95"
+              >
+                Start Auction
+              </button>
+              <p className="text-xs text-slate-500 mt-4">Make sure everyone is in the room before starting.</p>
+            </>
+          ) : (
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl py-6 animate-pulse">
+              <p className="text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                <Activity className="w-5 h-5 text-emerald-500" />
+                Waiting for host to start...
+              </p>
+            </div>
+          )}
+          <p className="text-xs text-slate-500 mt-4">Make sure everyone is in the room before starting.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -308,15 +367,42 @@ export default function LiveAuctionArena() {
 
             <button 
               onClick={placeBid}
-              disabled={!isConnected || timeLeft === 0 || highestBidder === session.username} 
+              disabled={!isConnected || timeLeft === 0 || highestBidder === session.username || squadSize >= 15 || (currentBid + 50) > myPurse} 
               className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-black uppercase tracking-widest text-lg rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 py-4"
             >
               <Gavel className="w-5 h-5" />
-              Bid ₹{currentBid + 50}L
+              {squadSize >= 15 ? "Squad Full (Max 15)" :
+               (currentBid + 50) > myPurse ? "Insufficient Funds" :
+               highestBidder === session.username ? "You hold the bid" : 
+               `Bid ₹${currentBid + 50}L`}
             </button>
+          </div>
 
-            
-
+          {/* COMPETITOR ROSTERS (CACHED) */}
+          <div className="mt-8 bg-slate-900/50 rounded-xl p-4 border border-slate-800">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Lobby Participants</h3>
+            <div className="flex flex-wrap gap-4">
+              {competitors.map((comp: any) => (
+                <details key={comp.username} className="group bg-slate-800 rounded-lg p-3 min-w-[200px] cursor-pointer">
+                  <summary className="flex justify-between items-center font-bold text-white outline-none">
+                    <span>{comp.username}</span>
+                    <span className="text-emerald-400 text-sm">₹{comp.purse}L</span>
+                  </summary>
+                  <div className="mt-3 pt-3 border-t border-slate-700 text-sm text-slate-300 space-y-1 max-h-32 overflow-y-auto">
+                    {comp.roster.length === 0 ? (
+                      <span className="text-slate-500 italic">No players yet</span>
+                    ) : (
+                      comp.roster.map((p: any, idx: number) => (
+                        <div key={idx} className="flex justify-between">
+                          <span className="truncate pr-2">{p.name}</span>
+                          <span className="text-emerald-500">₹{p.price}L</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
 
         </div>
