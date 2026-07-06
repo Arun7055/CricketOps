@@ -1,4 +1,6 @@
 # 🏏 CricketOps: Real-Time Auction & Analytics Simulator
+(https://via.placeholder.com/1200x400?text=Drag+and+Drop+Your+Main+App+Screenshot+Here)<img width="1420" height="808" alt="image" src="https://github.com/user-attachments/assets/079cd448-d706-49de-a79d-c9c24c8377c2" />
+
 
 CricketOps is a high-performance, full-stack cricket auction simulator and analytics dashboard. Designed to replicate the intense, fast-paced environment of a live franchise draft, the platform combines a robust real-time bidding engine with deep, data-driven scouting reports backed by a custom ETL pipeline and LLM-generated insights.
 
@@ -15,6 +17,8 @@ The main feature of the platform is the live bidding arena, engineered for zero-
 * **Concurrency & Race Condition Handling:** Built with **RabbitMQ**, the backend queues incoming bids. If two users bid at the exact same millisecond, the message broker ensures they are processed sequentially, preventing database race conditions and double-spending.
 * **Host-Controlled Draft Flow:** Secure lobby creation dictates that only the room creator can initialize the draft and control the progression, ensuring a structured draft environment.
 * **Live Constraint Validations:** The backend actively rejects bids if a franchise attempts to exceed their max squad size (e.g., 25 players) or outbid their remaining purse balance.
+* <img width="1423" height="809" alt="image" src="https://github.com/user-attachments/assets/c7628ae6-401d-4427-9876-45714025f592" />
+
 
 ### 2. The Player Analytics Lab
 A comprehensive scouting dashboard that aggregates historical data into actionable, visual insights.
@@ -24,17 +28,23 @@ A comprehensive scouting dashboard that aggregates historical data into actionab
   * **Bowling Pressure:** Wickets taken (Bars) vs. Economy Rate (Line).
 * **Fielding Agility Stack:** A dedicated stacked bar chart visualizing total career fielding contributions (Catches, Stumpings).
 * **LLM Scouting Reports:** Features in-depth, Wikipedia-scraped and Groq API-generated `cricbuzz_profile` and `injury_profile` narratives for all 210 players.
+* <img width="1424" height="808" alt="image" src="https://github.com/user-attachments/assets/a7d30525-c7fa-4340-a5f7-5abb2a29ba38" />
+
 
 ### 3. Post-Draft Squad Analytics
 The moment the final player is sold, the lobby is seamlessly routed to an automated post-auction analysis dashboard.
 * **Purse Efficiency Metrics:** Calculates how effectively each franchise utilized their budget vs. the actual output of the players acquired.
 * **Dynamic Squad Balance Grids:** Visualizes the roster construction, breaking down the squad into precise roles (Top Order, All-Rounders, Pace, Spin) to identify gaps.
 * **Premium Buy Highlights:** Automatically isolates and flags the highest-impact and most expensive acquisitions of the draft.
+* <img width="1420" height="807" alt="image" src="https://github.com/user-attachments/assets/d9d5a70d-0ff5-4b88-93f4-7297f9ef5645" />
+
 
 
 ### 4. AI-Driven Cricket News Feed
 To keep the ecosystem immersive, the platform includes a dynamic news generation engine.
 * **Contextual Storytelling:** Leverages the Groq LLM API to generate realistic, in-universe news articles, injury updates, and draft rumors, adding a layer of unpredictability and narrative to the scouting phase.
+* <img width="1419" height="805" alt="image" src="https://github.com/user-attachments/assets/3d6e2d88-bbfd-487d-b704-2e57e16eb6b0" />
+
 
 ---
 
@@ -45,11 +55,17 @@ To keep the ecosystem immersive, the platform includes a dynamic news generation
 * **Database:** PostgreSQL (Neon DB), SQLAlchemy ORM, Alembic Migrations
 * **Real-Time Engine:** WebSockets, RabbitMQ (Message Queue), `aio-pika`
 * **Data Pipeline:** Python (Pandas, Numpy), Groq (LLM)
+* <img width="413" height="427" alt="image" src="https://github.com/user-attachments/assets/43135c82-0c2d-4184-aa62-94b382c0ceef" />
+<img width="511" height="391" alt="image" src="https://github.com/user-attachments/assets/51674fda-1e09-42c6-abdf-318f5d2385b8" />
+
+
 
 ## 📊 The Data Pipeline (ETL)
 The player database is built on a highly customized data generation pipeline:
 1. **Base Dataset:** A core CSV containing 210 players with base attributes (Name, Role, Batting Style, Bowling Style) was imported into a Neon DB PostgreSQL table.
 2. **LLM Enrichment:** We utilized the **Groq API** paired with Wikipedia scraping to dynamically generate comprehensive, realistic scouting profiles for the entire roster.
 3. **Statistical Aggregation:** Raw JSON match data spanning from 2018 to 2025 was processed, accumulated, and normalized using Pandas to feed the REST endpoints that power the Player Lab.
+
+<img width="991" height="167" alt="image" src="https://github.com/user-attachments/assets/f276cf38-2dde-4e96-ba09-64a00a7e7cca" />
 
 ---
