@@ -9,6 +9,7 @@ app = FastAPI(title="Cricket Intelligence Engine")
 origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3001",
+    "https://cricket-ops.vercel.app",
 ]
 
 app.add_middleware(
