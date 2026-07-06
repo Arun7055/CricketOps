@@ -1,5 +1,4 @@
-# 🏏 CricketOps: Real-Time Auction & Analytics Simulator
-(https://via.placeholder.com/1200x400?text=Drag+and+Drop+Your+Main+App+Screenshot+Here)<img width="1420" height="808" alt="image" src="https://github.com/user-attachments/assets/079cd448-d706-49de-a79d-c9c24c8377c2" />
+# 🏏 CricketOps: Real-Time Auction & Analytics Simulator<img width="1420" height="808" alt="image" src="https://github.com/user-attachments/assets/079cd448-d706-49de-a79d-c9c24c8377c2" />
 
 
 CricketOps is a high-performance, full-stack cricket auction simulator and analytics dashboard. Designed to replicate the intense, fast-paced environment of a live franchise draft, the platform combines a robust real-time bidding engine with deep, data-driven scouting reports backed by a custom ETL pipeline and LLM-generated insights.
