@@ -34,11 +34,11 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-400 group-hover:scale-110 transition-transform">
               <Swords className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-black text-white mb-1.5 tracking-tight">Tactical War Room</h3>
-            <p className="text-xs md:text-sm text-slate-400 mb-6 leading-relaxed">Simulate pitch physics, weather shifts, and 1v1 matchup advantages against live opposition.</p>
+            <h3 className="text-xl font-black text-white mb-1.5 tracking-tight">Squad Analysis</h3>
+            <p className="text-xs md:text-sm text-slate-400 mb-6 leading-relaxed">Check how the teams stack up against each other after auction.</p>
           </div>
           <span className="text-blue-400 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
-            Enter Cockpit <ArrowRight className="w-4 h-4"/>
+            Check it Out! <ArrowRight className="w-4 h-4"/>
           </span>
         </Link>
 
@@ -52,7 +52,7 @@ export default function LandingPage() {
               <Gavel className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black text-white mb-1.5 tracking-tight">Auction Room</h3>
-            <p className="text-xs md:text-sm text-slate-400 mb-6 leading-relaxed">Formulate budget strategies, predict inflation triggers, and maximize purse ROI.</p>
+            <p className="text-xs md:text-sm text-slate-400 mb-6 leading-relaxed">Live bidding in auction room with friends.</p>
           </div>
           <span className="text-purple-400 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
             Launch Room <ArrowRight className="w-4 h-4"/>
