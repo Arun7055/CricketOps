@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Activity, ShieldAlert, Zap, TrendingUp, Award } from "lucide-react";
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-  ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, Legend 
+  ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, Legend, BarChart
 } from "recharts";
 
 // --- API SCHEMAS ---
@@ -23,6 +23,8 @@ interface SeasonStat {
   strike_rate: number;
   wickets: number;
   economy: number;
+  catches: number;
+  stumpings: number;
 }
 
 interface PlayerLabData {
@@ -37,7 +39,7 @@ export default function PlayerLabPage() {
   const [playerData, setPlayerData] = useState<PlayerLabData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [timelineMode, setTimelineMode] = useState<"batting" | "bowling">("batting");
+  const [timelineMode, setTimelineMode] = useState<"batting" | "bowling" | "fielding">("batting");
 
   useEffect(() => {
     if (!activeQuery) return;
@@ -230,6 +232,14 @@ export default function PlayerLabPage() {
                 >
                   Bowling Pressure
                 </button>
+                <button
+                  onClick={() => setTimelineMode("fielding")}
+                  className={`px-3 py-1.5 whitespace-nowrap rounded-lg text-xs font-bold transition-all ${
+                    timelineMode === "fielding" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Fielding Agility
+                </button>
               </div>
             </div>
 
@@ -256,10 +266,17 @@ export default function PlayerLabPage() {
                       <Bar yAxisId="left" name="Runs Scored" dataKey="runs_scored" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
                       <Line yAxisId="right" name="Strike Rate" type="monotone" dataKey="strike_rate" stroke="#a855f7" strokeWidth={2.5} dot={{ r: 4, fill: "#a855f7" }} />
                     </>
-                  ) : (
+                  ) : timelineMode === "bowling" ? (
                     <>
                       <Bar yAxisId="left" name="Wickets Taken" dataKey="wickets" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                       <Line yAxisId="right" name="Economy Rate" type="monotone" dataKey="economy" stroke="#ec4899" strokeWidth={2.5} dot={{ r: 4, fill: "#ec4899" }} />
+                    </>
+                  ) : (
+                    /* NEW: Fielding mode uses stackId to stack the bars on top of each other! */
+                    <>
+                      <Bar yAxisId="left" name="Catches" dataKey="catches" stackId="fielding" fill="#10b981" />
+                      <Bar yAxisId="left" name="Run Outs" dataKey="run_outs" stackId="fielding" fill="#f59e0b" />
+                      <Bar yAxisId="left" name="Stumpings" dataKey="stumpings" stackId="fielding" fill="#ef4444" radius={[4, 4, 0, 0]} />
                     </>
                   )}
                 </ComposedChart>
@@ -273,9 +290,11 @@ export default function PlayerLabPage() {
             </div>
 
           </div>
-
+          
         </div>
+        
       )}
+      
 
     </div>
   );

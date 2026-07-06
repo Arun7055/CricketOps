@@ -23,6 +23,8 @@ class SeasonStat(BaseModel):
     strike_rate: float
     wickets: int
     economy: float
+    catches: int
+    stumpings:int
 
 class PlayerLabResponse(BaseModel):
     player_name: str
@@ -97,7 +99,9 @@ def get_player_analytics_lab(player_name: str):
             runs_scored=int(pd.isna(runs) and 0 or runs),
             strike_rate=round(float(sr), 1),
             wickets=int(pd.to_numeric(row.get('Wickets_Taken', 0), errors='coerce')),
-            economy=round(float(econ), 2)
+            economy=round(float(econ), 2),
+            catches=int(pd.to_numeric(row.get('Catches_Taken', 0), errors='coerce') or 0),
+            stumpings=int(pd.to_numeric(row.get('Stumpings', 0), errors='coerce') or 0)
         ))
 
     return PlayerLabResponse(
