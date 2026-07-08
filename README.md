@@ -41,7 +41,7 @@ The moment the final player is sold, the lobby is seamlessly routed to an automa
 
 ### 4. AI-Driven Cricket News Feed
 To keep the ecosystem immersive, the platform includes a dynamic news generation engine.
-* **Contextual Storytelling:** Leverages the Groq LLM API to generate realistic, in-universe news articles, injury updates, and draft rumors, adding a layer of unpredictability and narrative to the scouting phase.
+* **Contextual Storytelling:** RSS feed is filtered using keywords and importance of news.
 * <img width="1419" height="805" alt="image" src="https://github.com/user-attachments/assets/3d6e2d88-bbfd-487d-b704-2e57e16eb6b0" />
 
 
@@ -61,7 +61,7 @@ To keep the ecosystem immersive, the platform includes a dynamic news generation
 
 ## 📊 The Data Pipeline (ETL)
 The player database is built on a highly customized data generation pipeline:
-1. **Base Dataset:** A core CSV containing 210 players with base attributes (Name, Role, Batting Style, Bowling Style) was imported into a Neon DB PostgreSQL table.
+1. **Base Dataset:** A core CSV containing 210 players with base attributes (Name, Role, Batting Style, Bowling Style, Auction Base Price) was imported into a Neon DB PostgreSQL table.
 2. **LLM Enrichment:** We utilized the **Groq API** paired with Wikipedia scraping to dynamically generate comprehensive, realistic scouting profiles for the entire roster.
 3. **Statistical Aggregation:** Raw JSON match data spanning from 2018 to 2025 was processed, accumulated, and normalized using Pandas to feed the REST endpoints that power the Player Lab.
 
